@@ -18,7 +18,8 @@ app.get("/", (req, res) => {
   res.send("API is running...");
 });
 
-app.use("/api/tasks", requireAuth(), taskRouters);
+// app.use("/api/tasks", requireAuth(), taskRouters);
+app.use("/api/tasks", taskRouters);
 
 // kết nối DB khi khởi tạo, không block request
 connectDB().catch(err => {
