@@ -23,4 +23,4 @@ app.use("/api/tasks", requireAuth(), taskRouters);
 // Kết nối DB
 connectDB();
 
-export const handler = serverless(app);
+export default serverless(app);
