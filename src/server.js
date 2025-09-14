@@ -3,7 +3,7 @@ import dotenv from "dotenv";
 import cors from "cors";
 import taskRouters from "./routes/tasksRouter.js";
 import { connectDB } from "./config/db.js";
-// import { requireAuth } from "@clerk/express"; // tạm bỏ để test
+import { requireAuth } from "@clerk/express";
 
 dotenv.config();
 
