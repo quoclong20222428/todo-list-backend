@@ -1,10 +1,9 @@
 import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
-import { requireAuth } from "@clerk/express";
 import taskRouters from "./routes/tasksRouter.js";
 import { connectDB } from "./config/db.js";
-import serverless from "serverless-http";
+// import { requireAuth } from "@clerk/express"; // tạm bỏ để test
 
 dotenv.config();
 
@@ -18,12 +17,9 @@ app.get("/", (req, res) => {
   res.send("API is running...");
 });
 
-// app.use("/api/tasks", requireAuth(), taskRouters);
-app.use("/api/tasks", taskRouters);
+app.use("/api/tasks", requireAuth(), taskRouters);
+// app.use("/api/tasks", taskRouters);
 
-// kết nối DB khi khởi tạo, không block request
-connectDB().catch(err => {
-  console.error("MongoDB connection failed:", err.message);
-});
+connectDB().catch(err => console.error("DB error:", err));
 
-export default serverless(app);
+export default app;   // 👈 export app trực tiếp, không serverless()
