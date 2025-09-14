@@ -3,6 +3,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 import express from "express";
 import taskRouters from "./routes/tasksRouter.js";
+import serverless from "serverless-http";
 
 dotenv.config();
 
