@@ -17,8 +17,8 @@ app.get("/", (req, res) => {
   res.send("API is running...");
 });
 
-// app.use("/api/tasks", requireAuth(), taskRouters);
-app.use("/api/tasks", taskRouters);
+app.use("/api/tasks", requireAuth(), taskRouters);
+// app.use("/api/tasks", taskRouters);
 
 connectDB().catch(err => console.error("DB error:", err));
 
