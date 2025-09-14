@@ -1,10 +1,8 @@
-import express from "express";
-import dotenv from "dotenv";
-import { connectDB } from "./config/db.js";
-import taskRouters from "./routes/tasksRouter.js";
-import cors from "cors";
 import { requireAuth } from "@clerk/express";
-import serverless from "serverless-http";
+import cors from "cors";
+import dotenv from "dotenv";
+import express from "express";
+import taskRouters from "./routes/tasksRouter.js";
 
 dotenv.config();
 
@@ -19,8 +17,3 @@ app.use(express.json());
 app.use(cors({ origin: FRONTEND_URL }));
 
 app.use("/api/tasks", requireAuth(), taskRouters);
-
-// Kết nối DB
-connectDB();
-
-export default serverless(app);
