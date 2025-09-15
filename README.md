@@ -1,72 +1,133 @@
 # To-Do App – FullStack Project
 
-## 🚀 Project Setup & Usage
-**How to install and run your project:**  
-- Clone the repository  
-  - Frontend: [https://github.com/quoclong20222428/todo-list-frontend.git](https://github.com/quoclong20222428/todo-list-frontend.git)  
-  - Backend: [https://github.com/quoclong20222428/todo-list-backend.git](https://github.com/quoclong20222428/todo-list-backend.git)  
-- `npm install` for both **frontend** and **backend**  
-- In the backend folder: create a `.env` file containing MongoDB configuration, Clerk keys (`CLERK_SECRET_KEY`, `CLERK_PUBLISHABLE_KEY`, `FRONTEND_URL`)  
-- Run backend: `npm run dev`  
-- In the frontend folder: create a `.env` file containing `VITE_API_BASE` pointing to the backend and `VITE_CLERK_PUBLISHABLE_KEY` for Clerk keys
-- Run frontend: `npm run dev`  
-- Access the application at `http://localhost:5173`
-
-## 🔗 Deployed Web URL
-[https://todo-list-frontend-iota-eight.vercel.app/](https://todo-list-frontend-iota-eight.vercel.app/)
-
-
-## 🎥 Demo Video
-**Demo video link (≤ 2 minutes):**  
-📌 **Video Upload Guideline:** when uploading your demo video to YouTube, please set the visibility to **Unlisted**.  
-- “Unlisted” videos can only be viewed by users who have the link.  
-- The video will not appear in search results or on your channel.  
-- Share the link in your README so mentors can access it.  
-
-- Link video: [https://youtu.be/z2NiwjrZwxs](https://youtu.be/z2NiwjrZwxs)
-
-
 ## 💻 Project Introduction
 
-### a. Overview
+A modern, full-stack To-Do List web application built to help users manage tasks efficiently with a sleek interface and secure authentication.
 
-This project is a To-Do List web application designed to help users manage their tasks efficiently. It features a modern interface built with React Vite and TypeScript for the frontend, and a Node.js Express backend. The app integrates Clerk for authentication, allowing users to sign up, log in, log out, and edit their profiles seamlessly.
+![React](https://img.shields.io/badge/React-61DAFB?logo=react&logoColor=black&style=flat-square)
+![Vite](https://img.shields.io/badge/Vite-646CFF?logo=vite&logoColor=white&style=flat-square)
+![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white&style=flat-square)
+![Node.js](https://img.shields.io/badge/Node.js-339933?logo=node.js&logoColor=white&style=flat-square)
+![Express](https://img.shields.io/badge/Express-000000?logo=express&logoColor=white&style=flat-square)
+![MongoDB](https://img.shields.io/badge/MongoDB-47A248?logo=mongodb&logoColor=white&style=flat-square)
+![Clerk](https://img.shields.io/badge/Clerk-6B33A8?logo=clerk&logoColor=white&style=flat-square)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?logo=tailwind-css&logoColor=white&style=flat-square)
 
-### b. Key Features & Function Manual
+### Overview
+This project is a To-Do List web application designed to streamline task management. It features a modern frontend built with **React Vite** and **TypeScript**, paired with a **Node.js Express** backend. The app integrates **Clerk** for secure authentication, enabling users to sign up, log in, log out, and manage their profiles effortlessly.
 
-- **Authentication:** Users can register, log in, log out, and update their profiles using Clerk.  
-- **CRUD Operations:** Create, read, update, and delete tasks with ease.  
-- **Task Display:** View tasks with titles, descriptions, creation dates, and completion dates.  
-- **Time Filters:** Filter tasks by today, this week, this month, or all time.  
-- **Pagination:** Navigate through tasks using pagination controls.  
-- **Task Status:** Filter and view tasks by pending, in-progress, or completed statuses with respective counts.
+![Main Screen Preview](./src/img/img1.png)
 
-### c. Unique Features (What’s special about this app?) 
+### Key Features
+- **Authentication**: Register, log in, log out, and update profiles using Clerk.
+- **CRUD Operations**: Create, read, update, and delete tasks seamlessly.
+- **Task Display**: View tasks with titles, descriptions, creation dates, and completion dates.
+- **Time Filters**: Filter tasks by today, this week, this month, or all time.
+- **Pagination**: Navigate through tasks with pagination controls.
+- **Task Status**: Filter tasks by pending, in-progress, or completed statuses, with respective counts.
 
-The app stands out with its motivational footer that dynamically updates with encouraging messages based on the number of completed tasks. Additionally, the integration of Clerk for authentication and the use of time-based filters with pagination provide a unique and user-friendly experience.
+### Unique Features
+- **Motivational Footer**: Dynamically updates with encouraging messages based on the number of completed tasks.
+- **Time-Based Filters & Pagination**: Enhances user experience by allowing flexible task filtering and smooth navigation.
+- **Clerk Integration**: Provides secure and seamless user authentication.
 
-### d. Technology Stack and Implementation Methods
+### Technology Stack
+- **Frontend**: React Vite with TypeScript for a robust, type-safe development environment.
+- **Backend**: Node.js with Express.js for efficient API request handling and task management.
+- **Authentication**: Clerk for secure user authentication and profile management.
+- **Styling**: Tailwind CSS for responsive, modern, and customizable design.
+- **Database**: MongoDB for storing task data.
 
-- **Frontend:** React Vite with TypeScript for a robust and type-safe development environment.  
-- **Backend:** Node.js with Express.js for handling API requests and task management.  
-- **Authentication:** Clerk for secure user authentication and profile management.  
-- **Styling:** Tailwind CSS for responsive and modern design.  
+### Service Architecture
+The app follows a **client-server architecture**:
+- The **frontend** communicates with the backend via **RESTful APIs**.
+- The **backend** uses **MongoDB** to store task data with a schema including:
+  - `userId`: Links tasks to specific users.
+  - `title`: Task title.
+  - `description`: Task details.
+  - `status`: Pending, in-progress, or completed.
+  - `createdAt`: Task creation date.
+  - `completedAt`: Task completion date (if applicable).
+- **Deployment**:
+  - Frontend: Hosted on **Vercel**.
+  - Backend: Deployed on a separate Node.js server.
 
-### e. Service Architecture & Database structure (when used)
+---
 
-The app follows a client-server architecture. The frontend communicates with the backend via RESTful APIs. The backend uses MongoDB to store task data, with a schema including fields like userId, title, description, status, createdAt, and completedAt. The service is deployed on Vercel for the frontend and a separate Node.js server for the backend.
+## 🚀 Usage Instructions
 
-## 🧠 Reflection
+### For Demo Users
+1. **Access the App**: Visit the deployed application at [https://todo-list-frontend-iota-eight.vercel.app/](https://todo-list-frontend-iota-eight.vercel.app/).
+2. **Sign Up/Log In**: Use the Clerk authentication system to create an account or log in.
+3. **Manage Tasks**:
+   - Add new tasks with a title and description.
+   - Update or delete existing tasks.
+   - Filter tasks by time (today, this week, this month, or all) or by status (pending, in-progress, completed).
+   - Navigate through tasks using pagination controls.
+4. **Enjoy Motivation**: Check the footer for encouraging messages based on your completed tasks!
 
-### a. If you had more time, what would you expand?
+### For Developers
+To set up and run the project locally, follow these steps:
 
-I would add task categorization or tags, implement notifications for upcoming deadlines, and enhance the UI with animations and a dark mode option to improve user experience.
+1. **Clone the Repositories**:
+   ```bash
+   git clone https://github.com/quoclong20222428/todo-list-frontend.git
+   git clone https://github.com/quoclong20222428/todo-list-backend.git
+   ```
 
-### b. If you integrate AI APIs more for your app, what would you do?
+2. **Install Dependencies**:
+   - Navigate to the `todo-list-frontend` folder and run:
+     ```bash
+     cd todo-list-frontend
+     npm install
+     ```
+   - Navigate to the `todo-list-backend` folder and run:
+     ```bash
+     cd todo-list-backend
+     npm install
+     ```
 
-I would integrate AI to suggest task priorities based on deadlines and user habits, provide smart task recommendations, and use natural language processing to allow voice input for creating tasks.
+3. **Set Up Environment Variables**:
+   - **Backend**:
+     - Create a `.env` file in the `todo-list-backend` folder.
+     - Add the following configurations:
+       ```
+       MONGO_URI=<Your MongoDB connection string>
+       CLERK_SECRET_KEY=<Your Clerk secret key>
+       CLERK_PUBLISHABLE_KEY=<Your Clerk publishable key>
+       FRONTEND_URL=http://localhost:5173
+       ```
+   - **Frontend**:
+     - Create a `.env` file in the `todo-list-frontend` folder.
+     - Add the following configurations:
+       ```
+       VITE_API_BASE=<Your backend API URL, e.g., http://localhost:3000>
+       VITE_CLERK_PUBLISHABLE_KEY=<Your Clerk publishable key>
+       ```
 
-## ✅ Checklist
-- [x] Code runs without errors  
-- [x] All required features implemented (add/edit/delete/complete tasks)  
-- [x] All ✍️ sections are filled
+4. **Run the Backend**:
+   - In the `todo-list-backend` folder, run:
+     ```bash
+     npm run dev
+     ```
+
+5. **Run the Frontend**:
+   - In the `todo-list-frontend` folder, run:
+     ```bash
+     npm run dev
+     ```
+
+6. **Access the Application**:
+   - Open your browser and navigate to [http://localhost:5173](http://localhost:5173).
+
+---
+
+## 🔗 Deployed Web URL
+The application is live at: [https://todo-list-frontend-iota-eight.vercel.app/](https://todo-list-frontend-iota-eight.vercel.app/)
+
+---
+
+## 📝 Notes
+- Ensure your MongoDB instance is running and accessible for the backend to connect.
+- Clerk keys can be obtained by creating a project in the [Clerk Dashboard](https://clerk.dev/).
+- For production deployment, update the `.env` files with the appropriate URLs for your backend and frontend.
