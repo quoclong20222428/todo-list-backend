@@ -126,11 +126,6 @@ To set up and run the project locally, follow these steps:
 
 ---
 
-## 🔗 Deployed Web URL
-The application is live at: [https://todo-list-frontend-iota-eight.vercel.app/](https://todo-list-frontend-iota-eight.vercel.app/)
-
----
-
 ## 📝 Notes
 - Ensure your MongoDB instance is running and accessible for the backend to connect.
 - Clerk keys can be obtained by creating a project in the [Clerk Dashboard](https://clerk.dev/).
