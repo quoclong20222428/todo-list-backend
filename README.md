@@ -7,6 +7,7 @@ A modern, full-stack To-Do List web application built to help users manage tasks
 ![React](https://img.shields.io/badge/React-61DAFB?logo=react&logoColor=black&style=flat-square)
 ![Vite](https://img.shields.io/badge/Vite-646CFF?logo=vite&logoColor=white&style=flat-square)
 ![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white&style=flat-square)
+![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?logo=javascript&logoColor=black&style=flat-square)
 ![Node.js](https://img.shields.io/badge/Node.js-339933?logo=node.js&logoColor=white&style=flat-square)
 ![Express](https://img.shields.io/badge/Express-000000?logo=express&logoColor=white&style=flat-square)
 ![MongoDB](https://img.shields.io/badge/MongoDB-47A248?logo=mongodb&logoColor=white&style=flat-square)
@@ -14,7 +15,10 @@ A modern, full-stack To-Do List web application built to help users manage tasks
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?logo=tailwind-css&logoColor=white&style=flat-square)
 
 ### Overview
-This project is a To-Do List web application designed to streamline task management. It features a modern frontend built with **React Vite** and **TypeScript**, paired with a **Node.js Express** backend. The app integrates **Clerk** for secure authentication, enabling users to sign up, log in, log out, and manage their profiles effortlessly.
+This project is a To-Do List web application designed to streamline task management. It features a modern frontend built with **React Vite** and **TypeScript**, paired with a **Node.js Express** backend written in **JavaScript**. The backend handles RESTful APIs, CRUD operations, and database management with **MongoDB**.  
+
+For authentication, the app integrates **Clerk**, allowing secure signup, login, logout, and user profile management. On the frontend, **Tailwind CSS** provides a clean and responsive UI design.
+
 
 ![Main Screen Preview](./src/img/img1.png)
 
