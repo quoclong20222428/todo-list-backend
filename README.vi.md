@@ -2,6 +2,13 @@
 
 Tài liệu này mô tả dịch vụ API cho ứng dụng To-Do. Backend được viết bằng Node.js/Express, xác thực bằng Clerk và lưu dữ liệu trên MongoDB. Mã nguồn đã được chuẩn hóa để triển khai dạng serverless trên Vercel nhưng vẫn có thể chạy cục bộ.
 
+![Node.js](https://img.shields.io/badge/Node.js-339933?logo=node.js&logoColor=white&style=flat-square)
+![Express](https://img.shields.io/badge/Express-000000?logo=express&logoColor=white&style=flat-square)
+![MongoDB](https://img.shields.io/badge/MongoDB-47A248?logo=mongodb&logoColor=white&style=flat-square)
+![Clerk](https://img.shields.io/badge/Clerk-6B33A8?logo=clerk&logoColor=white&style=flat-square)
+![Vercel](https://img.shields.io/badge/Vercel-000000?logo=vercel&logoColor=white&style=flat-square)
+![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?logo=javascript&logoColor=black&style=flat-square)
+
 ## Mục lục
 
 - Giới thiệu tổng quan
