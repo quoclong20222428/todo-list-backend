@@ -1,132 +1,153 @@
-# To-Do App – FullStack Project
+# To-Do App Backend
 
-## 💻 Project Introduction
+This folder contains the serverless-ready Express API that powers the To-Do App. It exposes authenticated CRUD endpoints for task management, persists data in MongoDB, and is designed to deploy on Vercel or any Node.js runtime.
 
-A modern, full-stack To-Do List web application built to help users manage tasks efficiently with a sleek interface and secure authentication.
+The matching frontend lives in `../todo-list-frontend`.
 
-![React](https://img.shields.io/badge/React-61DAFB?logo=react&logoColor=black&style=flat-square)
-![Vite](https://img.shields.io/badge/Vite-646CFF?logo=vite&logoColor=white&style=flat-square)
-![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white&style=flat-square)
-![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?logo=javascript&logoColor=black&style=flat-square)
-![Node.js](https://img.shields.io/badge/Node.js-339933?logo=node.js&logoColor=white&style=flat-square)
-![Express](https://img.shields.io/badge/Express-000000?logo=express&logoColor=white&style=flat-square)
-![MongoDB](https://img.shields.io/badge/MongoDB-47A248?logo=mongodb&logoColor=white&style=flat-square)
-![Clerk](https://img.shields.io/badge/Clerk-6B33A8?logo=clerk&logoColor=white&style=flat-square)
-![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?logo=tailwind-css&logoColor=white&style=flat-square)
+## Table of contents
 
-### Overview
-This project is a To-Do List web application designed to streamline task management. It features a modern frontend built with **React Vite** and **TypeScript**, paired with a **Node.js Express** backend written in **JavaScript**. The backend handles RESTful APIs, CRUD operations, and database management with **MongoDB**.  
+- Overview
+- Features
+- Tech stack
+- Project structure
+- Environment variables
+- Getting started
+- API reference
+- Development notes
+- Deployment
+- Related projects
 
-For authentication, the app integrates **Clerk**, allowing secure signup, login, logout, and user profile management. On the frontend, **Tailwind CSS** provides a clean and responsive UI design.
+## Overview
 
+The backend is a thin Express service that verifies requests with Clerk, applies task-specific business rules, and returns pre-aggregated statistics required by the React client (counts per status alongside task listings). The codebase is written with native ES modules and targets Node 18+.
 
-![Main Screen Preview](./src/img/img1.png)
+## Features
 
-### Key Features
-- **Authentication**: Register, log in, log out, and update profiles using Clerk.
-- **CRUD Operations**: Create, read, update, and delete tasks seamlessly.
-- **Task Display**: View tasks with titles, descriptions, creation dates, and completion dates.
-- **Time Filters**: Filter tasks by today, this week, this month, or all time.
-- **Pagination**: Navigate through tasks with pagination controls.
-- **Task Status**: Filter tasks by pending, in-progress, or completed statuses, with respective counts.
+- Clerk-based authentication guard on every `/api/tasks` route via `requireAuth()`.
+- Aggregated task responses that include status counters alongside the task list.
+- Granular time filtering (today, this week, this month, all time) implemented with MongoDB aggregation.
+- RESTful CRUD endpoints with ownership enforcement (`userId` matched to the authenticated user).
+- CORS configuration that scopes access to the configured frontend origin.
+- Serverless-friendly entry point that can be exported to Vercel while still runnable locally.
 
-### Unique Features
-- **Motivational Footer**: Dynamically updates with encouraging messages based on the number of completed tasks.
-- **Time-Based Filters & Pagination**: Enhances user experience by allowing flexible task filtering and smooth navigation.
-- **Clerk Integration**: Provides secure and seamless user authentication.
+## Tech stack
 
-### Technology Stack
-- **Frontend**: React Vite with TypeScript for a robust, type-safe development environment.
-- **Backend**: Node.js with Express.js for efficient API request handling and task management.
-- **Authentication**: Clerk for secure user authentication and profile management.
-- **Styling**: Tailwind CSS for responsive, modern, and customizable design.
-- **Database**: MongoDB for storing task data.
+- Node.js 18+
+- Express 5
+- MongoDB with Mongoose 8
+- Clerk Express SDK
+- Vercel serverless adapter (via default export)
 
-### Service Architecture
-The app follows a **client-server architecture**:
-- The **frontend** communicates with the backend via **RESTful APIs**.
-- The **backend** uses **MongoDB** to store task data with a schema including:
-  - `userId`: Links tasks to specific users.
-  - `title`: Task title.
-  - `description`: Task details.
-  - `status`: Pending, in-progress, or completed.
-  - `createdAt`: Task creation date.
-  - `completedAt`: Task completion date (if applicable).
-- **Deployment**:
-  - Frontend: Hosted on **Vercel**.
-  - Backend: Deployed on a separate Node.js server.
+## Project structure
 
----
+```
+src/
+  config/
+    db.js           // MongoDB connection helper
+  controllers/
+    tasksController.js  // Aggregation and CRUD handlers
+  middleware/
+    clerkAuth.js    // Optional Clerk middleware wrapper
+  models/
+    tasksModel.js   // Task schema definition
+  routes/
+    tasksRouter.js  // Task-related routes
+  server.js         // Express app definition exported for Vercel
+vercel.json         // Vercel build and routing configuration
+```
 
-## 🚀 Usage Instructions
+## Environment variables
 
-### For Demo Users
-1. **Access the App**: Visit the deployed application at [https://todo-list-frontend-iota-eight.vercel.app/](https://todo-list-frontend-iota-eight.vercel.app/).
-2. **Sign Up/Log In**: Use the Clerk authentication system to create an account or log in.
-3. **Manage Tasks**:
-   - Add new tasks with a title and description.
-   - Update or delete existing tasks.
-   - Filter tasks by time (today, this week, this month, or all) or by status (pending, in-progress, completed).
-   - Navigate through tasks using pagination controls.
-4. **Enjoy Motivation**: Check the footer for encouraging messages based on your completed tasks!
+Create a `.env` file at the repository root with the following keys:
 
-### For Developers
-To set up and run the project locally, follow these steps:
+| Name | Required | Description |
+| --- | --- | --- |
+| `DB_URL` | Yes | MongoDB connection string used by Mongoose. |
+| `CLERK_SECRET_KEY` | Yes | Backend secret issued by Clerk for server-side token verification. |
+| `CLERK_PUBLISHABLE_KEY` | Yes | Publishable key shared with the frontend to initialise Clerk. |
+| `FRONTEND_URL` | Yes | Allowed CORS origin, e.g. `http://localhost:5173` for local development. |
+| `PORT` | Optional | Only needed if you provide a custom local bootstrap (defaults to `3000`). |
 
-1. **Clone the Repositories**:
-   ```bash
-   git clone https://github.com/quoclong20222428/todo-list-frontend.git
-   git clone https://github.com/quoclong20222428/todo-list-backend.git
+> The previous version of this README referenced `MONGO_URI`; the code uses `DB_URL`. Update existing `.env` files accordingly.
+
+## Getting started
+
+1. Install dependencies:
+   ```powershell
+   cd todo-list-backend
+   npm install
    ```
-
-2. **Install Dependencies**:
-   - Navigate to the `todo-list-frontend` folder and run:
-     ```bash
-     cd todo-list-frontend
-     npm install
+2. Configure Clerk and MongoDB credentials in `.env` as shown above.
+3. Choose one of the local run modes:
+   - **Vercel emulation (recommended)**
+     ```powershell
+     npx vercel dev
      ```
-   - Navigate to the `todo-list-backend` folder and run:
-     ```bash
-     cd todo-list-backend
-     npm install
+     The CLI watches source changes and exposes the server at `http://localhost:3000` by default.
+   - **Custom bootstrap**: if you prefer running plain Node.js, create a tiny launcher (for example `local-server.mjs`) with
+     ```javascript
+     import app from "./src/server.js";
+
+     const port = process.env.PORT || 3000;
+     app.listen(port, () => console.log(`API listening on http://localhost:${port}`));
      ```
+     and start it with `node local-server.mjs`.
 
-3. **Set Up Environment Variables**:
-   - **Backend**:
-     - Create a `.env` file in the `todo-list-backend` folder.
-     - Add the following configurations:
-       ```
-       MONGO_URI=<Your MongoDB connection string>
-       CLERK_SECRET_KEY=<Your Clerk secret key>
-       CLERK_PUBLISHABLE_KEY=<Your Clerk publishable key>
-       FRONTEND_URL=http://localhost:5173
-       ```
-   - **Frontend**:
-     - Create a `.env` file in the `todo-list-frontend` folder.
-     - Add the following configurations:
-       ```
-       VITE_API_BASE=<Your backend API URL, e.g., http://localhost:3000>
-       VITE_CLERK_PUBLISHABLE_KEY=<Your Clerk publishable key>
-       ```
+When the backend is running, the frontend can target it via `VITE_API_BASE_URL`.
 
-4. **Run the Backend**:
-   - In the `todo-list-backend` folder, run:
-     ```bash
-     npm run dev
-     ```
+## API reference
 
-5. **Run the Frontend**:
-   - In the `todo-list-frontend` folder, run:
-     ```bash
-     npm run dev
-     ```
+All routes live under `/api/tasks` and require a valid Clerk session (Bearer token in the `Authorization` header).
 
-6. **Access the Application**:
-   - Open your browser and navigate to [http://localhost:5173](http://localhost:5173).
+| Method | Endpoint | Query/body parameters | Description |
+| --- | --- | --- | --- |
+| `GET` | `/api/tasks` | `filter` query: `today` \| `this_week` \| `this_month` \| `all_time` (default) | Returns the authenticated user's tasks and status counters. |
+| `POST` | `/api/tasks` | JSON body: `title`, `description` | Creates a new task for the current user. |
+| `PUT` | `/api/tasks/:id` | JSON body (partial): `title`, `description`, `status` (`pending` \| `inprogress` \| `completed`) | Updates an existing task and stamps `completedAt` when status changes to `completed`. |
+| `DELETE` | `/api/tasks/:id` | none | Deletes a task owned by the current user. |
 
----
+Sample success payload for `GET /api/tasks`:
 
-## 📝 Notes
-- Ensure your MongoDB instance is running and accessible for the backend to connect.
-- Clerk keys can be obtained by creating a project in the [Clerk Dashboard](https://clerk.dev/).
-- For production deployment, update the `.env` files with the appropriate URLs for your backend and frontend.
+```json
+{
+  "tasks": [
+    {
+      "_id": "6732c...",
+      "title": "Finish documentation",
+      "description": "Update README files",
+      "status": "inprogress",
+      "userId": "user_123",
+      "createdAt": "2025-10-10T09:12:34.123Z",
+      "updatedAt": "2025-10-11T08:00:00.000Z",
+      "completedAt": null
+    }
+  ],
+  "pendingCount": 2,
+  "inProgressCount": 1,
+  "completedCount": 4
+}
+```
+
+Errors are returned as JSON `{ "message": string }` with appropriate HTTP codes (`401`, `404`, `400`, `500`).
+
+## Development notes
+
+- All source files are ES modules (`type: module` in `package.json`). Use `import`/`export` syntax throughout.
+- The Mongo connection helper calls `process.exit(1)` on failure to avoid running the API without a database.
+- If you need to seed data, interact with the `Task` model in `src/models/tasksModel.js`.
+- `requireAuth()` injects the Clerk user context on `req.auth`; controllers rely on `req.auth.userId` when filtering documents.
+
+## Deployment
+
+The repository includes `vercel.json`. Deploy by connecting the project in the Vercel dashboard or via CLI:
+
+```powershell
+npx vercel --prod
+```
+
+Ensure the production environment variables (`DB_URL`, Clerk keys, `FRONTEND_URL`) are configured in Vercel before promoting.
+
+## Related projects
+
+- Frontend: [todo-list-frontend](../todo-list-frontend/README.md)
+- Vietnamese docs: [README.vi.md](README.vi.md)
