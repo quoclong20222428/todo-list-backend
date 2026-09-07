@@ -1,0 +1,19 @@
+name: Keep MongoDB Alive
+
+on:
+  schedule:
+    # Every Sunday at 00:00 UTC
+    - cron: "0 0 * * 0"
+
+  # Allow manual execution from GitHub Actions
+  workflow_dispatch:
+
+jobs:
+  health-check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Ping database health endpoint
+        run: |
+          curl --fail --silent --show-error \
+            https://todo-list-backend-tau-ochre.vercel.app/health/db
