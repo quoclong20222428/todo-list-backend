@@ -2,6 +2,7 @@ import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
 import taskRouters from "./routes/tasksRouter.js";
+import healthRouter from "./routes/health.js";
 import { connectDB } from "./config/db.js";
 import { requireAuth } from "@clerk/express";
 
@@ -11,6 +12,7 @@ const app = express();
 const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173";
 
 app.use(express.json());
+app.use("/health", healthRouter);
 app.use(cors({ origin: FRONTEND_URL }));
 
 app.get("/", (req, res) => {
@@ -22,4 +24,11 @@ app.use("/api/tasks", requireAuth(), taskRouters);
 
 connectDB().catch(err => console.error("DB error:", err));
 
-export default app;   // 👈 export app trực tiếp, không serverless()
+if (!process.env.VERCEL) {
+  const port = process.env.PORT || 3000;
+  app.listen(port, () => {
+    console.log(`API listening on port ${port}`);
+  });
+}
+
+export default app;
