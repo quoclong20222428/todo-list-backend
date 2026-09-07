@@ -22,7 +22,7 @@ app.use("/health", healthRouter);
 app.use("/api/tasks", requireAuth(), taskRouters);
 // app.use("/api/tasks", taskRouters);
 
-connectDB().catch(err => console.error("DB error:", err));
+connectDB().catch(() => console.error("MongoDB initialization failed"));
 
 if (!process.env.VERCEL) {
   const port = process.env.PORT || 3000;
