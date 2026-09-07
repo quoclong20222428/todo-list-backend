@@ -12,13 +12,13 @@ const app = express();
 const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173";
 
 app.use(express.json());
-app.use("/health", healthRouter);
 app.use(cors({ origin: FRONTEND_URL }));
 
 app.get("/", (req, res) => {
   res.send("API is running...");
 });
 
+app.use("/health", healthRouter);
 app.use("/api/tasks", requireAuth(), taskRouters);
 // app.use("/api/tasks", taskRouters);
 
