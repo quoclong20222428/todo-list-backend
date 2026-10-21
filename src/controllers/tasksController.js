@@ -108,6 +108,8 @@ export const updateTask = async (req, res) => {
     }
     if (req.body.status === "completed") {
       task.completedAt = new Date();
+    } else if (req.body.status != undefined) {
+      task.completedAt = null;
     }
 
     const updatedTask = await task.save();
@@ -120,10 +122,13 @@ export const updateTask = async (req, res) => {
 
 export const deleteTask = async (req, res) => {
   try {
-    await Task.findOneAndDelete({
+    const deleted = await Task.findOneAndDelete({
       _id: req.params.id,
       userId: req.auth.userId,
     });
+    if (!deleted) {
+      return res.status(404).json({ message: "Task not found" });
+    }
     res.json({ message: "Task deleted" });
   } catch (error) {
     res.status(500).json({ message: error.message });
