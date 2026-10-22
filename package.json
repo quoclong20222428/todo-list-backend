@@ -8,6 +8,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "dev": "nodemon src/server.js",
+    "build": "esbuild src/server.js --bundle --platform=node --format=esm --outfile=dist/server.js --packages=external",
     "start": "node src/server.js"
   },
   "keywords": [],
@@ -23,9 +24,10 @@
     "serverless-http": "^4.0.0"
   },
   "devDependencies": {
+    "esbuild": "^0.28.2",
     "mongodb-memory-server": "^10.1.4",
-    "nodemon": "^3.1.10",
+    "nodemon": "^1.14.10",
     "supertest": "^7.1.0",
-    "vitest": "^3.2.4"
+    "vitest": "^5.0.5"
   }
 }
