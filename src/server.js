@@ -14,15 +14,23 @@ const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173";
 app.use(express.json());
 app.use(cors({ origin: FRONTEND_URL }));
 
+// Ensure MongoDB is connected before handling any request.
+app.use(async (_req, _res, next) => {
+  try {
+    await connectDB();
+    next();
+  } catch (err) {
+    console.error("MongoDB connection failed:", err);
+    next(err);
+  }
+});
+
 app.get("/", (req, res) => {
   res.send("API is running...");
 });
 
 app.use("/health", healthRouter);
 app.use("/api/tasks", requireAuth(), taskRouters);
-// app.use("/api/tasks", taskRouters);
-
-connectDB().catch(() => console.error("MongoDB initialization failed"));
 
 if (!process.env.VERCEL) {
   const port = process.env.PORT || 3000;
