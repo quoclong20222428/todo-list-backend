@@ -30,7 +30,7 @@
  *
  *   NOTE: With isolate:false in vitest.config.js, vi.mock() calls persist
  *   across test files. This implementation deliberately avoids vi.mock() for
- *   @clerk/express to prevent contaminating B02–B08.
+ *   @clerk/express to prevent contaminating B02–B15.
  */
 
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
@@ -72,9 +72,12 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
-  // Do NOT disconnect here. With isolate:false + singleFork:true, all suites
-  // share one Mongoose connection. Later suites (B02–B08) depend on it.
-  // The connection is closed by the last suite's afterAll (B08).
+  // B01 opens a Mongoose connection in beforeAll but intentionally does not
+  // close it here. Each subsequent suite (B02–B15) calls connectTestDB() and
+  // disconnectTestDB() independently in its own beforeAll/afterAll — they do
+  // not depend on B01's connection. Leaving this afterAll empty avoids a
+  // double-disconnect if B01 happens to run before another suite in the same
+  // process (fileParallelism: false, isolate: false).
 });
 
 describe("B01 — Auth middleware route wiring (inline mock; not real Clerk validation)", () => {

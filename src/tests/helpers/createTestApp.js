@@ -1,5 +1,5 @@
 /**
- * createTestApp.js — Test Express app factory for B02–B08.
+ * createTestApp.js — Test Express app factory for B02–B15.
  *
  * IMPORTANT: This module does NOT import server.js and does NOT call the
  * production connectDB(). It builds its own minimal Express app with:
@@ -16,9 +16,10 @@
  * Database lifecycle:
  *   The caller is responsible for connecting and disconnecting Mongoose.
  *   Use the helpers exported at the bottom of this file.
- *   With singleFork:true all suites share one Mongoose connection — connect
- *   once in the first suite's beforeAll, and only disconnect in the last
- *   suite's afterAll. Each suite clears its own data in beforeEach/afterEach.
+ *   Each suite calls connectTestDB() in beforeAll and disconnectTestDB() in
+ *   afterAll independently. connectTestDB() is idempotent (skips if already
+ *   connected), so suites are safe to run individually or in sequence.
+ *   Each suite clears its own data in beforeEach via clearTasks().
  */
 
 import express from "express";
@@ -77,9 +78,9 @@ export async function connectTestDB() {
 
 /**
  * Disconnect Mongoose.
- * Call in the final afterAll() to prevent connection leaks.
- * Individual suites should call clearTasks() instead to preserve
- * the shared connection between suites.
+ * Call in a suite's afterAll() to prevent connection leaks.
+ * Within a suite, call clearTasks() in beforeEach to isolate test data
+ * without closing the connection.
  */
 export async function disconnectTestDB() {
   if (mongoose.connection.readyState !== 0) {
@@ -91,7 +92,8 @@ export async function disconnectTestDB() {
  * Delete all Task documents for test isolation between tests.
  * Does NOT close the connection.
  * Uses mongoose.model() to retrieve the already-registered model rather than
- * importing it again (avoids OverwriteModelError in singleFork mode).
+ * importing it again (avoids OverwriteModelError when isolate: false shares
+ * the module registry across files).
  */
 export async function clearTasks() {
   const Task = mongoose.model("Task");
