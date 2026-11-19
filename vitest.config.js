@@ -19,11 +19,10 @@ export default defineConfig({
     // Keep the default forks pool. With isolate:false, each fork still gets
     // one shared module context, which is what we need.
     pool: "forks",
-    poolOptions: {
-      forks: {
-        singleFork: true,
-      },
-    },
+    // Run all test files sequentially in a single worker so clearTasks() calls
+    // don't race across separate OS processes sharing the same MongoMemoryServer.
+    // Replaces the removed poolOptions.forks.singleFork (deprecated in Vitest 4).
+    fileParallelism: false,
     // Sequential file execution to prevent concurrent Mongoose operations
     // across files within the same fork.
     sequence: {

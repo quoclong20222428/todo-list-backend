@@ -5,17 +5,13 @@
  *
  * B15-1: POST with whitespace-only title
  *   The Mongoose schema has { title: { type: String, required: true } }.
- *   Mongoose's required validator only rejects undefined/null/empty string (""),
- *   NOT whitespace-only strings ("   "). The controller does not trim the value.
- *   This means POST with title="   " is currently accepted with HTTP 201.
+ *   Mongoose 8's required validator only rejects undefined/null/empty string ("").
+ *   Whitespace-only strings ("   ") are NOT trimmed by Mongoose 8 before the
+ *   required check — they pass validation and are persisted as-is.
+ *   The controller does not trim either.
  *
- *   This test documents the OBSERVED behavior. The whitespace title is persisted
- *   as-is. This may or may not be intentional — the test does NOT assert that
- *   201 is the correct status; it asserts what the production code does today.
- *
- *   NOTE: If the decision is later made to reject whitespace-only titles (via
- *   schema { title: { trim: true, required: true } } or controller-level
- *   validation), the assertion must be updated in a separate approved change.
+ *   These tests assert the actual Mongoose 8.x behavior: whitespace-only titles
+ *   are accepted (HTTP 201) and stored verbatim.
  *
  * B15-2 / B15-3: Sort order with this_week and today filters
  *   The controller applies { $sort: { createdAt: -1 } } inside the $facet
@@ -71,46 +67,32 @@ beforeEach(async () => {
 // ─── B15-1: Whitespace-only title ────────────────────────────────────────────
 
 describe("B15-1 — POST with whitespace-only title (mocked auth)", () => {
-  it("title='   ' with valid description → documents observed HTTP status (201: Mongoose does not reject whitespace)", async () => {
-    /**
-     * OBSERVED BEHAVIOR DOCUMENTATION:
-     *   Mongoose required validator rejects: undefined, null, "".
-     *   It does NOT reject "   " (whitespace-only). The controller does not trim.
-     *   Therefore the current behavior is HTTP 201 with the whitespace title persisted.
-     *
-     *   This test will FAIL if a trim+required fix is applied in the future —
-     *   which is the correct outcome; update the assertion to expect 400 at that time.
-     */
+  it("title='   ' with valid description → 201 (Mongoose 8 does not reject whitespace-only strings)", async () => {
+    // Mongoose 8 required validator rejects: undefined, null, "".
+    // Whitespace-only strings ("   ") pass required check and are persisted as-is.
     const res = await request(app)
       .post("/api/tasks")
       .set("X-Test-User-Id", USER)
       .send({ title: "   ", description: "Valid description" });
 
-    // Document: Mongoose does not trim, so 201 is the current behavior.
-    // If production adds trimming, change this assertion to toBe(400).
     expect(
       res.status,
-      `Expected 201 (no trim validation), got ${res.status}: ${JSON.stringify(res.body)}`
+      `Expected 201 (Mongoose 8 does not reject whitespace-only), got ${res.status}: ${JSON.stringify(res.body)}`
     ).toBe(201);
 
-    // If accepted, the title is persisted as-is (whitespace not trimmed)
-    if (res.status === 201) {
-      expect(res.body.title).toBe("   ");
-      expect(res.body.userId).toBe(USER);
+    // Title persisted exactly as submitted (not trimmed)
+    expect(res.body.title).toBe("   ");
+    expect(res.body.userId).toBe(USER);
 
-      // Verify the whitespace title was persisted in the database
-      const doc = await getTask().findById(res.body._id);
-      expect(doc).not.toBeNull();
-      expect(doc.title).toBe("   ");
-    }
+    // Verify the whitespace title was persisted in the database
+    const doc = await getTask().findById(res.body._id);
+    expect(doc).not.toBeNull();
+    expect(doc.title).toBe("   ");
   });
 
-  it("title=' \\t\\n ' (tab and newline) → 201 (Mongoose required does not reject whitespace-only strings)", async () => {
-    /**
-     * Same behavior as the spaces-only case: Mongoose required only rejects
-     * undefined, null, and "". A tab+newline string is not empty, so it passes
-     * validation and the controller returns 201 with the title persisted as-is.
-     */
+  it("title=' \\t\\n ' (tab and newline) → 201 (Mongoose 8 does not reject whitespace-only strings)", async () => {
+    // Same as the spaces-only case: Mongoose 8 required only rejects undefined,
+    // null, and "". A tab+newline string passes validation and is persisted as-is.
     const res = await request(app)
       .post("/api/tasks")
       .set("X-Test-User-Id", USER)
@@ -118,7 +100,7 @@ describe("B15-1 — POST with whitespace-only title (mocked auth)", () => {
 
     expect(
       res.status,
-      `Expected 201 (no trim validation), got ${res.status}: ${JSON.stringify(res.body)}`
+      `Expected 201 (Mongoose 8 does not reject whitespace-only), got ${res.status}: ${JSON.stringify(res.body)}`
     ).toBe(201);
 
     // Title persisted exactly as submitted (no trimming)
@@ -130,9 +112,9 @@ describe("B15-1 — POST with whitespace-only title (mocked auth)", () => {
     expect(doc.title).toBe(" \t\n ");
   });
 
-  it("empty string title '' → 400 (Mongoose required: false for empty string)", async () => {
-    // This is the existing B04 baseline — confirmed here for contrast with
-    // the whitespace-only case above. Empty string IS rejected; "   " is not.
+  it("empty string title '' → 400 (Mongoose required rejects empty string)", async () => {
+    // Empty string "" IS rejected by Mongoose 8 required validator (unlike "   "
+    // which passes). This confirms the boundary: empty string → 400, whitespace → 201.
     const res = await request(app)
       .post("/api/tasks")
       .set("X-Test-User-Id", USER)
