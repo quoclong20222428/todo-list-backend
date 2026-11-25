@@ -1,34 +1,16 @@
 import Task from "../models/tasksModel.js";
+import { getUTCDateRange } from "../utils/getUTCDateRange.js";
 
 export const getAllTasks = async (req, res) => {
   const { filter = "today" } = req.query;
-  const now = new Date();
-  let startDate;
+  const { startDate, endDate } = getUTCDateRange(filter);
 
-  switch (filter) {
-    case "today": {
-      startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate()); // 2025-08-24 00:00
-      break;
-    }
-    case "this_week": {
-      const mondayDate =
-        now.getDate() - (now.getDay() - 1) - (now.getDay() === 0 ? 7 : 0);
-      startDate = new Date(now.getFullYear(), now.getMonth(), mondayDate);
-      break;
-    }
-    case "this_month": {
-      startDate = new Date(now.getFullYear(), now.getMonth(), 1);
-      break;
-    }
-    case "all_time":
-    default: {
-      startDate = null;
-    }
+  const query = { userId: req.auth.userId };
+  if (startDate) {
+    query.createdAt = endDate
+      ? { $gte: startDate, $lt: endDate }
+      : { $gte: startDate };
   }
-
-  const query = startDate
-    ? { userId: req.auth.userId, createdAt: { $gte: startDate } }
-    : { userId: req.auth.userId };
 
   try {
     const result = await Task.aggregate([

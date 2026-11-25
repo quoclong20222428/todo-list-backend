@@ -49,6 +49,26 @@ Replace the path with any test file from `src/tests/`. The global setup
 (`globalSetup.js`) runs automatically, so the in-memory MongoDB server is
 started even for a single-file run.
 
+**Complete list of test files** (use these exact names with `npx vitest run`):
+
+| Suite | Filename |
+|-------|----------|
+| B01 | `src/tests/b01.auth.test.js` |
+| B02 | `src/tests/b02.userIsolation.test.js` |
+| B03 | `src/tests/b03.crossUserProtection.test.js` |
+| B04 | `src/tests/b04.fieldValidation.test.js` |
+| B05 | `src/tests/b05.userIdentity.test.js` |
+| B06 | `src/tests/b06.weekFilter.test.js` |
+| B07 | `src/tests/b07.statusCounts.test.js` |
+| B08 | `src/tests/b08.completedAt.test.js` |
+| B09 | `src/tests/b09.crudLifecycle.test.js` |
+| B10 | `src/tests/b10.dateFilter.test.js` |
+| B11 | `src/tests/b11.updateEdgeCases.test.js` |
+| B12 | `src/tests/b12.clientBodyIgnored.test.js` |
+| B13 | `src/tests/b13.responseShape.test.js` |
+| B14 | `src/tests/b14.errorPaths.test.js` |
+| B15 | `src/tests/b15.dataIntegrity.test.js` |
+
 ### Watch mode (re-runs on file save)
 
 ```powershell

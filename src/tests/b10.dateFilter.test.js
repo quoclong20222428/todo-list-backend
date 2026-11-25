@@ -1,27 +1,19 @@
 /**
- * B10 — Date filter boundary tests
+ * B10 — Date filter boundary tests (UTC calendar boundaries)
  *
  * AUTHENTICATION: Mocked (X-Test-User-Id header → req.auth.userId).
  *
- * TIMEZONE NOTE:
- *   The controller computes startDate using the SERVER's local timezone:
- *     filter=today:      startDate = new Date(Y, M, D)    ← local midnight
- *     filter=this_month: startDate = new Date(Y, M, 1)    ← local midnight on 1st
+ * UTC CALENDAR CONTRACT:
+ *   The controller uses getUTCDateRange() which computes all boundaries
+ *   using UTC methods exclusively. All ranges are half-open: [start, end).
  *
- *   All seeds are inserted with explicit createdAt using insertMany BEFORE
- *   fake timers are enabled, so the MongoDB driver is unaffected (same
- *   strategy as B06).
- *
- *   Seed timestamps are chosen to be unambiguous across all UTC offsets
- *   (UTC−12 to UTC+14). "Clearly inside" uses a value many hours after
- *   any possible local midnight; "clearly outside" uses midnight UTC
- *   on a date well before the boundary.
+ *   - today:      [00:00 UTC today, 00:00 UTC tomorrow)
+ *   - this_month: [1st of month 00:00 UTC, 1st of next month 00:00 UTC)
  *
  * FAKE TIMER STRATEGY (same as B06):
  *   1. Seed data with real timers (MongoDB driver unaffected).
  *   2. Enable fake timers only around the HTTP GET call.
- *   3. Restore real timers in a finally block so cleanup is guaranteed
- *      even if an assertion throws.
+ *   3. Restore real timers in a finally block.
  */
 
 import {
@@ -65,32 +57,20 @@ beforeEach(async () => {
 // ─── Reference dates ─────────────────────────────────────────────────────────
 //
 // "Now" is fixed to 2024-03-15 12:00 UTC (Friday, noon).
-//   filter=today:      startDate = new Date(2024, 2, 15) → 2024-03-15 LOCAL midnight
-//   filter=this_month: startDate = new Date(2024, 2,  1) → 2024-03-01 LOCAL midnight
-//
-// TODAY_TASK_CREATED_AT (2024-03-15T20:00Z):
-//   In UTC+14:  new Date(2024, 2, 15) = 2024-03-14T10:00Z (local midnight).
-//               2024-03-15T20:00Z >= 2024-03-14T10:00Z → YES ✓
-//   In UTC-12:  new Date(2024, 2, 15) = 2024-03-15T12:00Z (local midnight).
-//               2024-03-15T20:00Z >= 2024-03-15T12:00Z → YES ✓
-//
-// YESTERDAY_CREATED_AT (2024-03-14T00:00Z):
-//   In UTC+14:  local midnight = 2024-03-14T10:00Z.
-//               2024-03-14T00:00Z >= 2024-03-14T10:00Z → NO (00 < 10) ✓
-//   In UTC-12:  local midnight = 2024-03-15T12:00Z.
-//               2024-03-14T00:00Z >= 2024-03-15T12:00Z → NO ✓
-//   In UTC:     local midnight = 2024-03-15T00:00Z.
-//               2024-03-14T00:00Z >= 2024-03-15T00:00Z → NO ✓
-//
-// THIS_MONTH_TASK_CREATED_AT (2024-03-10T12:00Z): clearly March in any TZ.
-// LAST_MONTH_CREATED_AT (2024-02-15T00:00Z): clearly February in any TZ.
+// Using UTC calendar:
+//   filter=today:      [2024-03-15T00:00:00Z, 2024-03-16T00:00:00Z)
+//   filter=this_month: [2024-03-01T00:00:00Z, 2024-04-01T00:00:00Z)
 
 const NOW_UTC = new Date("2024-03-15T12:00:00.000Z");
 
+// Today: 2024-03-15T20:00Z is within [Mar 15 00:00 UTC, Mar 16 00:00 UTC)
 const TODAY_TASK_CREATED_AT = new Date("2024-03-15T20:00:00.000Z");
+// Yesterday: 2024-03-14T00:00Z is before Mar 15 00:00 UTC
 const YESTERDAY_CREATED_AT  = new Date("2024-03-14T00:00:00.000Z");
 
+// This month: 2024-03-10 is within [Mar 1, Apr 1) UTC
 const THIS_MONTH_TASK_CREATED_AT = new Date("2024-03-10T12:00:00.000Z");
+// Last month: 2024-02-15 is before Mar 1 00:00 UTC
 const LAST_MONTH_CREATED_AT      = new Date("2024-02-15T00:00:00.000Z");
 
 // ─── tests ──────────────────────────────────────────────────────────────────
@@ -142,7 +122,6 @@ describe("B10 — Date filter boundary (mocked auth)", () => {
   });
 
   it("B10-2: filter=today includes today's task and excludes yesterday (clock fixed to 2024-03-15 12:00 UTC)", async () => {
-    // Seed BEFORE enabling fake timers so the MongoDB driver uses real Date
     await getTask().collection.insertMany([
       {
         _id: new mongoose.Types.ObjectId(),
@@ -182,7 +161,6 @@ describe("B10 — Date filter boundary (mocked auth)", () => {
   });
 
   it("B10-3: filter=this_month excludes a task from the previous month (clock fixed to 2024-03-15)", async () => {
-    // Seed BEFORE enabling fake timers
     await getTask().collection.insertMany([
       {
         _id: new mongoose.Types.ObjectId(),
@@ -222,22 +200,6 @@ describe("B10 — Date filter boundary (mocked auth)", () => {
   });
 
   it("B10-4: server controls createdAt — client-supplied value in POST body is ignored", async () => {
-    /**
-     * The createTask controller constructs the Task document from only
-     * req.body.title, req.body.description, and req.auth.userId.
-     * createdAt is managed by Mongoose { timestamps: true } at save time
-     * and cannot be injected through the request body.
-     *
-     * ASSERTION STRATEGY:
-     *   1. Record `before` immediately before the POST request.
-     *   2. Send POST /api/tasks with a forged createdAt (year 2000) in the body.
-     *   3. Record `after` immediately after the response is received.
-     *   4. Assert that the returned createdAt falls within [before, after].
-     *   5. Assert that the returned createdAt is not the forged year-2000 value.
-     *
-     * Real timers are used throughout so the [before, after] interval is valid.
-     * Fake timers are not needed and must not be active during this test.
-     */
     const FORGED_CREATED_AT = "2000-01-01T00:00:00.000Z";
     const forgiedMs = new Date(FORGED_CREATED_AT).getTime();
 

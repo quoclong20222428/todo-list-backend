@@ -19,6 +19,11 @@
  *   filter=all_time. These tests confirm the sort is preserved when date
  *   filters are applied.
  *
+ *   UTC CALENDAR CONTRACT:
+ *     All date boundaries are computed using getUTCDateRange() with UTC methods.
+ *     Fixtures use explicit UTC timestamps that are deterministic regardless
+ *     of host timezone.
+ *
  *   Fake timer + insertMany strategy follows B06/B10 to avoid MongoDB driver
  *   interference:
  *     1. Seed tasks with real timers (insertMany sets explicit createdAt).
@@ -129,14 +134,16 @@ describe("B15-1 — POST with whitespace-only title (mocked auth)", () => {
 
 describe("B15-2 — Sort order (createdAt descending) with filter=this_week (mocked auth)", () => {
   /**
-   * Reference week: Mon 2024-01-08 to Sun 2024-01-14.
+   * Reference week: Mon 2024-01-08 to Sun 2024-01-14 (UTC).
    * "Now" is fixed to Wednesday 2024-01-10T12:00:00Z.
+   *
+   * UTC calendar: this_week = [2024-01-08T00:00Z, 2024-01-15T00:00Z)
    *
    * Three tasks all within the same week, seeded with explicit createdAt values.
    * The newest (Wednesday) must appear first in the response.
    */
   const NOW_WEDNESDAY = new Date("2024-01-10T12:00:00.000Z");
-  const MONDAY   = new Date("2024-01-08T09:00:00.000Z"); // oldest within week
+  const MONDAY   = new Date("2024-01-08T13:00:00.000Z"); // oldest within week
   const TUESDAY  = new Date("2024-01-09T14:00:00.000Z"); // middle
   const WEDNESDAY_TASK = new Date("2024-01-10T08:00:00.000Z"); // newest (before "now")
 
@@ -244,23 +251,16 @@ describe("B15-2 — Sort order (createdAt descending) with filter=this_week (moc
 
 describe("B15-3 — Sort order (createdAt descending) with filter=today (mocked auth)", () => {
   /**
-   * "Now" is fixed to 2024-03-15T12:00:00Z (same as B10).
-   * Two tasks both created on 2024-03-15 but at different hours.
-   * The later-in-the-day task must appear first.
+   * UTC CALENDAR CONTRACT:
+   *   "Now" = 2024-03-14T23:00:00Z
+   *   today = [2024-03-14T00:00:00Z, 2024-03-15T00:00:00Z)
+   *
+   *   EARLY_TODAY  = 2024-03-14T18:00:00Z → within [Mar 14, Mar 15) UTC ✓
+   *   LATE_MORNING = 2024-03-14T21:00:00Z → within [Mar 14, Mar 15) UTC ✓; newer ✓
    */
-  /**
-   * "Now" is fixed to 2024-03-15T10:00:00Z.
-   * On this UTC+7 machine, now is local 2024-03-15T17:00:00+07:00 (5 PM, March 15).
-   * The controller computes startDate = new Date(year, month, date) in LOCAL time:
-   *   startDate = 2024-03-15T00:00:00+07:00 = 2024-03-14T17:00:00.000Z
-   * All task timestamps must satisfy:
-   *   createdAt >= 2024-03-14T17:00:00Z  (within today's local window)
-   *   createdAt <  2024-03-15T10:00:00Z  (in the past relative to 'now')
-   * The filter has no upper-bound check; both tasks are thus returned by today.
-   */
-  const NOW_UTC      = new Date("2024-03-15T10:00:00.000Z"); // local 17:00+07 on March 15
-  const EARLY_TODAY  = new Date("2024-03-14T18:00:00.000Z"); // local 01:00+07 on March 15
-  const LATE_MORNING = new Date("2024-03-15T08:00:00.000Z"); // local 15:00+07 on March 15
+  const NOW_UTC      = new Date("2024-03-14T23:00:00.000Z");
+  const EARLY_TODAY  = new Date("2024-03-14T18:00:00.000Z"); // 6 pm UTC (older)
+  const LATE_MORNING = new Date("2024-03-14T21:00:00.000Z"); // 9 pm UTC (newer)
 
   it("multiple tasks created today are sorted newest-first", async () => {
     await getTask().collection.insertMany([
@@ -298,10 +298,10 @@ describe("B15-3 — Sort order (createdAt descending) with filter=today (mocked 
 
     expect(res.status).toBe(200);
     const tasks = res.body.tasks;
-    // Both tasks must be included: createdAt within today's date range
+    // Both tasks must be included: createdAt within today's UTC range
     expect(tasks).toHaveLength(2);
 
-    // "Late morning" (10:00 UTC) is newer than "Early today" (08:00 UTC)
+    // "Late morning" (21:00 UTC) is newer than "Early today" (18:00 UTC)
     expect(tasks[0].title).toBe("Late morning");
     expect(tasks[1].title).toBe("Early today");
 
@@ -314,12 +314,13 @@ describe("B15-3 — Sort order (createdAt descending) with filter=today (mocked 
      * Insert the older task FIRST and the newer task SECOND.
      * If sort were by insertion order, the older task would appear first.
      * Correct behavior (createdAt: -1) puts the newer task first.
-     * Both timestamps are within today's local window and before NOW_UTC.
-     *   startDate = 2024-03-14T17:00:00Z (local midnight UTC+7)
-     *   NOW_UTC   = 2024-03-15T10:00:00Z
+     *
+     * UTC CALENDAR:
+     *   Both timestamps are within [Mar 14 00:00 UTC, Mar 15 00:00 UTC)
+     *   and before NOW_UTC (23:00Z).
      */
-    const OLDER = new Date("2024-03-14T17:30:00.000Z"); // local 00:30+07 on March 15
-    const NEWER = new Date("2024-03-15T06:00:00.000Z"); // local 13:00+07 on March 15
+    const OLDER = new Date("2024-03-14T18:00:00.000Z"); // 6 pm UTC (older)
+    const NEWER = new Date("2024-03-14T21:00:00.000Z"); // 9 pm UTC (newer)
 
     // Insert older FIRST (insertion order would put it first if sort is wrong)
     await getTask().collection.insertMany([

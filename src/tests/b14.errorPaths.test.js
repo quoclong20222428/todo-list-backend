@@ -122,9 +122,9 @@ describe("B14-2 — GET with invalid filter value (mocked auth)", () => {
   it("filter=invalid_value → 200 with all user tasks (default branch acts as all_time)", async () => {
     /**
      * REGRESSION GUARD:
-     *   The controller's switch default sets startDate = null, treating the
-     *   request identically to all_time. If the default branch is removed,
-     *   the controller would 500 or return 0 tasks. This test will catch that.
+     *   The getUTCDateRange utility's default case returns { startDate: null,
+     *   endDate: null } for unknown filter values, treating the request
+     *   identically to all_time. This test will catch any change to that.
      *
      * Two deterministic tasks are seeded (pending + completed). The response
      * must contain exactly those two tasks and the correct status counts.
@@ -229,23 +229,18 @@ describe("B14-3 — GET with empty filter string (mocked auth)", () => {
     /**
      * The controller defaults to filter = "today" when no query param is given:
      *   const { filter = "today" } = req.query;
-     * startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate())
-     *   — uses LOCAL time (UTC+7 on this machine).
      *
-     * Fake-timer strategy (same as B15-3):
-     *   NOW_UTC = 2024-03-15T07:00:00Z → local 2024-03-15T14:00:00+07:00
-     *   startDate (local midnight) = 2024-03-15T00:00:00+07:00
-     *                              = 2024-03-14T17:00:00.000Z
+     * UTC CALENDAR CONTRACT:
+     *   getUTCDateRange("today") computes:
+     *     startDate = Date.UTC(2024, 2, 15) = 2024-03-15T00:00:00Z
+     *     endDate   = Date.UTC(2024, 2, 16) = 2024-03-16T00:00:00Z
      *
-     * "Today" task  : 2024-03-14T18:00:00Z (local 01:00+07 on Mar 15) → included.
-     * "Yesterday" task: 2024-03-14T10:00:00Z (local 17:00+07 on Mar 14) → excluded.
-     *
-     * Tasks are seeded with real timers (insertMany with explicit createdAt),
-     * then fake timers wrap only the HTTP GET call.
+     *   TODAY_TS     = 2024-03-15T13:00:00Z → within [Mar 15, Mar 16) UTC ✓
+     *   YESTERDAY_TS = 2024-03-14T00:00:00Z → before Mar 15 00:00 UTC ✓
      */
-    const NOW_UTC       = new Date("2024-03-15T07:00:00.000Z");
-    const TODAY_TS      = new Date("2024-03-14T18:00:00.000Z"); // local Mar 15 01:00+07
-    const YESTERDAY_TS  = new Date("2024-03-14T10:00:00.000Z"); // local Mar 14 17:00+07
+    const NOW_UTC       = new Date("2024-03-15T14:00:00.000Z");
+    const TODAY_TS      = new Date("2024-03-15T13:00:00.000Z");
+    const YESTERDAY_TS  = new Date("2024-03-14T00:00:00.000Z");
 
     await getTask().collection.insertMany([
       {
@@ -283,7 +278,7 @@ describe("B14-3 — GET with empty filter string (mocked auth)", () => {
     expect(res.status).toBe(200);
     expect(Array.isArray(res.body.tasks)).toBe(true);
 
-    // Only "Today task" falls within today's local date window.
+    // Only "Today task" falls within today's UTC date window.
     expect(res.body.tasks).toHaveLength(1);
     expect(res.body.tasks[0].title).toBe("Today task");
 
